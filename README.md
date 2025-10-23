@@ -1,8 +1,8 @@
-# OpenSpec 🚀
+# OpenSpecification 🚀
 
 **AI-Powered Specification Generation for Modern Development**
 
-OpenSpec is an open-source web application that democratizes spec-driven development by replicating Kiro IDE's Spec Mode functionality. Generate comprehensive technical specifications using any AI model from OpenRouter's API, following a structured three-phase workflow with iterative refinement capabilities.
+OpenSpecification is an open-source web application that democratizes spec-driven development by replicating Kiro IDE's Spec Mode functionality. Generate comprehensive technical specifications using any AI model from OpenRouter's API, following a structured three-phase workflow with iterative refinement capabilities.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -109,7 +109,7 @@ Live: https://www.openspec.app/
 
 ## 🧪 Testing
 
-OpenSpec includes a comprehensive testing suite with 100+ test cases:
+OpenSpecification includes a comprehensive testing suite with 100+ test cases:
 
 ```bash
 # Run all tests
@@ -228,7 +228,7 @@ npm run build
 npm start
 ```
 
-OpenSpec is a fully static Next.js application with no backend dependencies.
+OpenSpecification is a fully static Next.js application with no backend dependencies.
 
 ## 🔐 Security & Privacy
 
@@ -265,7 +265,7 @@ We use [Conventional Commits](https://conventionalcommits.org/):
 
 ## 📄 License
 
-OpenSpec is open source software licensed under the [MIT License](LICENSE).
+OpenSpecification is open source software licensed under the [MIT License](LICENSE).
 
 ## 🙏 Acknowledgments
 
