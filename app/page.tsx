@@ -17,6 +17,59 @@ import { useSimpleApiKeyStorage } from '@/hooks/useSimpleApiKeyStorage'
 import { useModelStorage, usePromptStorage, useContextFilesStorage } from '@/hooks/useSessionStorage'
 import { DotPattern } from '@/components/magicui/dot-pattern'
 
+// Helper function to extract Mermaid diagrams with proper naming
+function extractMermaidDiagrams(content: string): { name: string; content: string }[] {
+  const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g
+  const diagrams: { name: string; content: string }[] = []
+  let match
+  
+  while ((match = mermaidRegex.exec(content)) !== null) {
+    const diagramContent = match[1].trim()
+    let diagramName = 'diagram'
+    
+    // Determine diagram type based on content
+    if (diagramContent.includes('graph') || diagramContent.includes('flowchart')) {
+      if (diagramContent.includes('user') || diagramContent.includes('User')) {
+        diagramName = 'user-flow'
+      } else if (diagramContent.includes('admin') || diagramContent.includes('Admin')) {
+        diagramName = 'admin-flow'
+      } else if (diagramContent.includes('system') || diagramContent.includes('System')) {
+        diagramName = 'system-flow'
+      } else if (diagramContent.includes('data') || diagramContent.includes('Data')) {
+        diagramName = 'data-flow'
+      } else if (diagramContent.includes('sequence') || diagramContent.includes('Sequence')) {
+        diagramName = 'sequence-diagram'
+      } else if (diagramContent.includes('class') || diagramContent.includes('Class')) {
+        diagramName = 'class-diagram'
+      } else if (diagramContent.includes('component') || diagramContent.includes('Component')) {
+        diagramName = 'component-diagram'
+      } else {
+        diagramName = 'flowchart'
+      }
+    } else if (diagramContent.includes('erDiagram') || diagramContent.includes('ER')) {
+      diagramName = 'entity-relationship'
+    } else if (diagramContent.includes('gantt') || diagramContent.includes('Gantt')) {
+      diagramName = 'gantt-chart'
+    } else if (diagramContent.includes('journey') || diagramContent.includes('Journey')) {
+      diagramName = 'user-journey'
+    } else if (diagramContent.includes('pie') || diagramContent.includes('Pie')) {
+      diagramName = 'pie-chart'
+    } else if (diagramContent.includes('git') || diagramContent.includes('Git')) {
+      diagramName = 'git-graph'
+    }
+    
+    // If we have multiple diagrams of the same type, add a suffix
+    const existingCount = diagrams.filter(d => d.name.startsWith(diagramName)).length
+    if (existingCount > 0) {
+      diagramName = `${diagramName}-${existingCount + 1}`
+    }
+    
+    diagrams.push({ name: diagramName, content: diagramContent })
+  }
+  
+  return diagrams
+}
+
 export default function Home() {
   const { value: apiKey, hasValidKey, setAPIKey, clearAPIKey } = useSimpleApiKeyStorage()
   
@@ -40,6 +93,7 @@ export default function Home() {
   const [justDidReset, setJustDidReset] = useState(false) // Track if we just did a reset
   const [expandedSpecs, setExpandedSpecs] = useState<{[key: string]: boolean}>({}) // Track expanded specifications
   const [showNewProjectNotification, setShowNewProjectNotification] = useState(false) // Track new project started
+  const [activeTab, setActiveTab] = useState<'documents' | 'diagrams'>('documents') // Track active tab in results
 
   const hasApiKey = Boolean(apiKey && hasValidKey)
   const hasModel = Boolean(selectedModel)
@@ -1114,9 +1168,40 @@ export default function Home() {
                       
                       {/* Generated Content Previews */}
                       <div className="space-y-4">
-                        <h4 className="text-lg font-semibold">Generated Specifications</h4>
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-lg font-semibold">Generated Specifications</h4>
+                          
+                          {/* Tab Toggle */}
+                          <div className="flex items-center bg-muted rounded-lg p-1">
+                            <button
+                              onClick={() => setActiveTab('documents')}
+                              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                                activeTab === 'documents'
+                                  ? 'bg-background text-foreground shadow-sm'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              <FileText className="h-4 w-4 inline mr-1" />
+                              Documents
+                            </button>
+                            <button
+                              onClick={() => setActiveTab('diagrams')}
+                              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                                activeTab === 'diagrams'
+                                  ? 'bg-background text-foreground shadow-sm'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              <Layers className="h-4 w-4 inline mr-1" />
+                              Diagrams
+                            </button>
+                          </div>
+                        </div>
                         
-                        {(['requirements', 'design', 'tasks'] as const).map((phase) => {
+                        {/* Documents Tab */}
+                        {activeTab === 'documents' && (
+                          <>
+                            {(['requirements', 'design', 'tasks'] as const).map((phase) => {
                           const content = workflow.state[phase]
                           if (!content) return null
                           
@@ -1156,7 +1241,79 @@ export default function Home() {
                               </CardContent>
                             </Card>
                           )
-                        })}
+                            })}
+                          </>
+                        )}
+                        
+                        {/* Diagrams Tab */}
+                        {activeTab === 'diagrams' && (
+                          <>
+                            {(() => {
+                              // Extract diagrams from all phases
+                              const allDiagrams: { name: string; content: string; source: string }[] = []
+                              
+                              // Check each phase for diagrams
+                              if (workflow.state.requirements) {
+                                const reqDiagrams = extractMermaidDiagrams(workflow.state.requirements)
+                                reqDiagrams.forEach(d => allDiagrams.push({ ...d, source: 'requirements' }))
+                              }
+                              
+                              if (workflow.state.design) {
+                                const designDiagrams = extractMermaidDiagrams(workflow.state.design)
+                                designDiagrams.forEach(d => allDiagrams.push({ ...d, source: 'design' }))
+                              }
+                              
+                              if (workflow.state.tasks) {
+                                const taskDiagrams = extractMermaidDiagrams(workflow.state.tasks)
+                                taskDiagrams.forEach(d => allDiagrams.push({ ...d, source: 'tasks' }))
+                              }
+                              
+                              if (allDiagrams.length === 0) {
+                                return (
+                                  <div className="text-center py-16 text-muted-foreground">
+                                    <Layers className="h-8 w-8 mx-auto mb-4" />
+                                    <div className="font-medium mb-2">No Diagrams Generated</div>
+                                    <div className="text-sm max-w-md mx-auto">
+                                      No Mermaid diagrams were found in the generated specifications.
+                                    </div>
+                                  </div>
+                                )
+                              }
+                              
+                              return allDiagrams.map((diagram, index) => {
+                                const isExpanded = expandedSpecs[`diagram-${index}`] || false
+                                
+                                return (
+                                  <Card key={`diagram-${index}`}>
+                                    <CardHeader>
+                                      <CardTitle className="text-base flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <span className="capitalize">{diagram.name.replace(/-/g, ' ')}</span>
+                                          <Badge variant="outline" className="text-xs">
+                                            from {diagram.source}
+                                          </Badge>
+                                        </div>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm"
+                                          onClick={() => setExpandedSpecs(prev => ({...prev, [`diagram-${index}`]: !isExpanded}))}
+                                          className="text-xs h-6 px-2"
+                                        >
+                                          {isExpanded ? 'Collapse' : 'Expand'}
+                                        </Button>
+                                      </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                      <div className={`bg-muted/30 rounded p-3 text-sm font-mono overflow-y-auto ${isExpanded ? 'max-h-96' : 'max-h-32'}`}>
+                                        <pre className="whitespace-pre-wrap">{diagram.content}</pre>
+                                      </div>
+                                    </CardContent>
+                                  </Card>
+                                )
+                              })
+                            })()}
+                          </>
+                        )}
                       </div>
                       
                       {/* Debug: Add dummy data for testing */}
