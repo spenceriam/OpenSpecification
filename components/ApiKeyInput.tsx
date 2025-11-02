@@ -49,6 +49,15 @@ export function ApiKeyInput({
       return false
     }
 
+    // Validate key format - OpenRouter keys must start with "sk-or-v1-"
+    if (!keyToTest.startsWith('sk-or-v1-')) {
+      setTestResult({ 
+        isValid: false, 
+        error: 'Invalid API key format. OpenRouter keys must start with "sk-or-v1-"' 
+      })
+      return false
+    }
+
     setIsTestingKey(true)
     setTestResult(null)
     onLoadingChange?.(true)
@@ -67,7 +76,7 @@ export function ApiKeyInput({
       } else {
         setTestResult({
           isValid: false,
-          error: 'Invalid API key'
+          error: 'Invalid API key - could not connect to OpenRouter. Please check your API key.'
         })
         // Clear invalid key from sessionStorage
         clearAPIKey()
@@ -75,11 +84,26 @@ export function ApiKeyInput({
         return false
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to test API key'
+      let errorMessage = 'Failed to test API key'
+      
+      if (error instanceof Error) {
+        if (error.message.includes('401') || error.message.includes('403')) {
+          errorMessage = 'Invalid API key - authentication failed. Please check your OpenRouter API key.'
+        } else if (error.message.includes('429')) {
+          errorMessage = 'Rate limit exceeded. Please wait before trying again.'
+        } else if (error.message.includes('Network') || error.message.includes('fetch')) {
+          errorMessage = 'Network error - could not connect to OpenRouter. Please check your internet connection.'
+        } else {
+          errorMessage = `Validation failed: ${error.message}`
+        }
+      }
+      
       setTestResult({
         isValid: false,
-        error: `Validation failed: ${errorMessage}`
+        error: errorMessage
       })
+      // Clear invalid key from sessionStorage
+      clearAPIKey()
       onApiKeyValidated?.(false)
       return false
     } finally {
@@ -112,11 +136,11 @@ export function ApiKeyInput({
       return
     }
 
-    // Validate key format
-    if (!trimmedValue.startsWith('sk-or-') && !trimmedValue.startsWith('sk-')) {
+    // Validate key format - OpenRouter keys must start with "sk-or-v1-"
+    if (!trimmedValue.startsWith('sk-or-v1-')) {
       setTestResult({ 
         isValid: false, 
-        error: 'OpenRouter API keys should start with "sk-or-" or "sk-"' 
+        error: 'OpenRouter API keys must start with "sk-or-v1-"' 
       })
       return
     }
@@ -146,11 +170,11 @@ export function ApiKeyInput({
       return
     }
     
-    // Validate key format
-    if (!keyToTest.startsWith('sk-or-') && !keyToTest.startsWith('sk-')) {
+    // Validate key format - OpenRouter keys must start with "sk-or-v1-"
+    if (!keyToTest.startsWith('sk-or-v1-')) {
       setTestResult({ 
         isValid: false, 
-        error: 'Invalid API key format' 
+        error: 'Invalid API key format. OpenRouter keys must start with "sk-or-v1-"' 
       })
       onApiKeyValidated?.(false, keyToTest)
       return
@@ -216,7 +240,7 @@ export function ApiKeyInput({
           <div className="relative">
             <Input
               type={showKey ? 'text' : 'password'}
-              placeholder={apiKey ? "Your API key is saved and validated" : "sk-or-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
+              placeholder={apiKey ? "Your API key is saved and validated" : "sk-or-v1-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"}
               value={inputValue}
               onChange={handleInputChange}
               onKeyPress={handleKeyPress}
