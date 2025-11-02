@@ -1415,15 +1415,24 @@ Please update the ${state.phase} document based on this feedback while maintaini
 
 // Helper functions for prompts  
 function getSystemPromptForPhase(phase: WorkflowPhase): string {
+  // Get current date from browser
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
+  const dateContext = ` Current Date: ${currentDate}. Use this date when referencing timeframes, planning, or scheduling in your response.`;
+  
   switch (phase) {
     case 'requirements':
-      return 'You are creating a requirements document in EARS format based on the provided feature description. Generate an initial requirements document following the structure with clear user stories and EARS acceptance criteria using WHEN, IF, WHILE, WHERE keywords.'
+      return `You are creating a requirements document in EARS format based on the provided feature description. Generate an initial requirements document following the structure with clear user stories and EARS acceptance criteria using WHEN, IF, WHILE, WHERE keywords.${dateContext}`
     case 'design':
-      return 'You are creating a comprehensive design document based on approved requirements. Include technical architecture, components, data models, error handling, and testing strategy. Use Mermaid diagrams for complex relationships.'
+      return `You are creating a comprehensive design document based on approved requirements. Include technical architecture, components, data models, error handling, and testing strategy. Use Mermaid diagrams for complex relationships.${dateContext}`
     case 'tasks':
-      return 'You are creating an actionable implementation plan based on approved design. Convert the design into discrete, manageable coding tasks with numbered checkboxes, specific deliverables, and requirement references.'
+      return `You are creating an actionable implementation plan based on approved design. Convert the design into discrete, manageable coding tasks with numbered checkboxes, specific deliverables, and requirement references.${dateContext}`
     default:
-      return 'You are creating technical specifications following standard formats.'
+      return `You are creating technical specifications following standard formats.${dateContext}`
   }
 }
 
@@ -1442,7 +1451,16 @@ function getRefinementPromptForPhase(phase: WorkflowPhase): string {
 
 // Phase-specific prompt builders matching Kiro IDE's approach
 function buildRequirementsPrompt(featureName: string, description: string, contextFiles: ContextFile[]): string {
+  // Get current date from browser
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
   let prompt = `Feature: ${featureName}
+
+Current Date: ${currentDate}
 
 Description:
 ${description}`
@@ -1493,14 +1511,32 @@ ${description}`
 }
 
 function buildDesignPrompt(requirements: string): string {
+  // Get current date from browser
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
   return `Based on the following approved requirements, create a comprehensive technical design document with architectural diagrams.
+
+Current Date: ${currentDate}
 
 ## Requirements:
 ${requirements}`
 }
 
 function buildTasksPrompt(requirements: string, design: string): string {
+  // Get current date from browser
+  const currentDate = new Date().toLocaleDateString('en-US', { 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+  
   return `Based on the following approved requirements and design, create a detailed implementation task list with numbered checkboxes.
+
+Current Date: ${currentDate}
 
 ## Requirements:
 ${requirements}
