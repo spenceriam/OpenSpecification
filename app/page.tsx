@@ -150,6 +150,13 @@ export default function Home() {
     }
   }, [hasApiKey, apiKeyStatus, justDidReset])
 
+  // Ensure model load status is set correctly when model is selected
+  useEffect(() => {
+    if (hasModel && modelLoadStatus !== 'success') {
+      setModelLoadStatus('success')
+    }
+  }, [hasModel, modelLoadStatus])
+
   const handleApiKeyValidated = (isValid: boolean, key?: string) => {
     if (isValid && key) {
       setApiKeyStatus('success')
