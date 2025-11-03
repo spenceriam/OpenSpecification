@@ -50,7 +50,7 @@ export function ModelSelector({
   filterByCapability = 'all',
   className = ''
 }: ModelSelectorProps) {
-  const { value: apiKey } = useSimpleApiKeyStorage()
+  const { value: apiKey, isValidFormat: isApiKeyValidFormat } = useSimpleApiKeyStorage()
   const [models, setModels] = useState<OpenRouterModel[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -63,6 +63,13 @@ export function ModelSelector({
   const fetchModels = useCallback(async () => {
     if (!apiKey) {
       setError('API key required to load models')
+      return
+    }
+
+    // Check if API key has valid format
+    if (!isApiKeyValidFormat) {
+      setError('Invalid API key format. OpenRouter API keys must start with "sk-or-v1-"')
+      onError?.()
       return
     }
 
@@ -81,14 +88,27 @@ export function ModelSelector({
         setModels(fetchedModels)
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to load models'
+      let errorMessage = 'Failed to load models'
+      
+      if (err instanceof Error) {
+        if (err.message.includes('401') || err.message.includes('403')) {
+          errorMessage = 'Invalid API key - authentication failed. Please check your OpenRouter API key.'
+        } else if (err.message.includes('429')) {
+          errorMessage = 'Rate limit exceeded. Please wait before trying again.'
+        } else if (err.message.includes('Network') || err.message.includes('fetch')) {
+          errorMessage = 'Network error - could not connect to OpenRouter. Please check your internet connection.'
+        } else {
+          errorMessage = err.message
+        }
+      }
+      
       setError(errorMessage)
       onError?.()
     } finally {
       setIsLoading(false)
       onLoadingChange?.(false)
     }
-  }, [apiKey])
+  }, [apiKey, isApiKeyValidFormat, onError, onLoadingChange])
 
   // Load models when component mounts or API key changes
   useEffect(() => {

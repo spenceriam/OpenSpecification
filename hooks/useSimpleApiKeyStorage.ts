@@ -77,13 +77,14 @@ export function useSimpleApiKeyStorage() {
   }, [])
   
   // Simple validation check
-  const isValidFormat = apiKey ? apiKey.startsWith('sk-or-') || apiKey.startsWith('sk-') : false
+  const isValidFormat = apiKey ? apiKey.startsWith('sk-or-v1-') : false
   const hasValidKey = Boolean(apiKey && isValidFormat && isValidated)
   
   return {
     value: apiKey,
     hasValidKey,
     setAPIKey,
-    clearAPIKey
+    clearAPIKey,
+    isValidFormat
   }
 }
