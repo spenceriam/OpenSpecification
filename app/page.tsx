@@ -7,7 +7,7 @@ import PromptInput from '@/components/PromptInput'
 import { ComponentErrorBoundary } from '@/components/ErrorBoundary'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { AlertCircle, CheckCircle, FileText, Layers, List, MessageSquare, Play, Loader2, Download, Key, Brain, Check, X } from 'lucide-react'
 import { useSpecWorkflow } from '@/hooks/useSpecWorkflow'
@@ -71,7 +71,7 @@ function extractMermaidDiagrams(content: string): { name: string; content: strin
 }
 
 export default function Home() {
-  const { value: apiKey, hasValidKey, setAPIKey, clearAPIKey } = useSimpleApiKeyStorage()
+  const { value: apiKey, hasValidKey, clearAPIKey } = useSimpleApiKeyStorage()
   
   const { selectedModel, setModel, clearModel } = useModelStorage()
   const { prompt, setPrompt, clearPrompt } = usePromptStorage()
